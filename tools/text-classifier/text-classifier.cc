@@ -397,8 +397,9 @@ int main(int argc, char** argv) try {
            argv[0]);
     }
 
-    ev::TableWriter output(
-        std::ofstream(argv[optind++], std::ofstream::out | std::ofstream::app));
+    std::ofstream output_stream(argv[optind++], std::ofstream::app);
+    KJ_REQUIRE(output_stream.is_open());
+    ev::TableWriter output(output_stream);
 
     const auto class_id = ev::StringToFloat(argv[optind++]);
 
@@ -447,8 +448,9 @@ int main(int argc, char** argv) try {
     if (optind + 1 != argc)
       errx(EX_USAGE, "Usage: %s [OPTION]... [--] batch-learn DB-PATH", argv[0]);
 
-    ev::TableWriter output(
-        std::ofstream(argv[optind++], std::ofstream::out | std::ofstream::app));
+    std::ofstream output_stream(argv[optind++], std::ofstream::app);
+    KJ_REQUIRE(output_stream.is_open());
+    ev::TableWriter output(output_stream);
 
     ev::ThreadPool thread_pool;
 
@@ -600,7 +602,9 @@ int main(int argc, char** argv) try {
            argv[0]);
     }
 
-    model->Train(ev::TableReader(std::ifstream(argv[optind++])));
+    std::ifstream input_stream(argv[optind++]);
+    KJ_REQUIRE(input_stream.is_open());
+    model->Train(ev::TableReader(input_stream));
 
     model->Save(
         ev::OpenFile(argv[optind++], O_WRONLY | O_CREAT | O_TRUNC, 0666));

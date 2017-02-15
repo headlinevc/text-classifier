@@ -14,8 +14,7 @@ using string_view = std::experimental::string_view;
 
 class TableWriter {
  public:
-  TableWriter(std::ofstream output) : output_(std::move(output)) {
-    KJ_REQUIRE(output_.is_open());
+  TableWriter(std::ostream & output) : output_(output) {
     output_.exceptions(output_.badbit | output_.failbit);
   }
 
@@ -29,7 +28,7 @@ class TableWriter {
   }
 
  private:
-  std::ofstream output_;
+  std::ostream& output_;
 
   template <std::size_t... I, typename... T>
   void Put(std::index_sequence<I...>, const std::tuple<T...>& value) {
@@ -44,8 +43,7 @@ class TableWriter {
 
 class TableReader {
  public:
-  TableReader(std::ifstream input) : input_(std::move(input)) {
-    KJ_REQUIRE(input_.is_open());
+  TableReader(std::ifstream& input) : input_(input) {
     input_.exceptions(input_.badbit | input_.failbit);
   }
 
@@ -60,7 +58,7 @@ class TableReader {
   }
 
  private:
-  std::ifstream input_;
+  std::ifstream& input_;
 
   template <std::size_t... I, typename... T>
   bool Get(std::index_sequence<I...>, std::tuple<T...>& value) {
