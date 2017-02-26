@@ -5,6 +5,7 @@
 #include <cctype>
 #include <cinttypes>
 #include <cstdio>
+#include <iostream>
 #include <map>
 
 #include <err.h>
@@ -346,6 +347,7 @@ int main(int argc, char** argv) try {
         "Commands:\n"
         "  learn DB-PATH CLASS-ID - learn the class of a single document\n"
         "  batch-learn - learn the class of any number of documents\n"
+        "  learn-features DB-PATH - learn the classes of many numeric features\n"
         "  analyze DB-PATH MODEL-PATH - build a model based on learned "
         "data\n"
         "  batch-classify - classify any number of documents\n"
@@ -480,6 +482,93 @@ int main(int argc, char** argv) try {
 
         buffer = nullptr;
 
+        std::sort(doc_hashes.begin(), doc_hashes.end());
+        if (do_unique) {
+          doc_hashes.erase(std::unique(doc_hashes.begin(), doc_hashes.end()),
+                           doc_hashes.end());
+        }
+
+        // Make sure zero is not present.
+        while (!doc_hashes.empty() && !doc_hashes.front())
+          doc_hashes.erase(doc_hashes.begin());
+
+        // Wait for the previous document to be written.
+        previous_future.get();
+
+        if (!doc_hashes.empty()) {
+          Header hdr;
+          hdr.class_id = class_id;
+          hdr.hash_count = doc_hashes.size();
+
+          std::tuple<ev::string_view, ev::string_view> row;
+
+          std::get<0>(row) = ev::string_view{
+              reinterpret_cast<const char*>(&hdr), sizeof(Header)};
+
+          std::get<1>(row) =
+              ev::string_view{reinterpret_cast<const char*>(doc_hashes.data()),
+                              sizeof(doc_hashes[0]) * doc_hashes.size()};
+          output.PutRow(row);
+        }
+
+        return 0;
+      });
+    }
+
+    previous_future.get();
+  } else if (command == "learn-features") {
+    if (optind + 1 != argc)
+      errx(EX_USAGE, "Usage: %s [OPTION]... [--] learn-features DB-PATH",
+           argv[0]);
+
+    std::ofstream output_stream(argv[optind++], std::ofstream::app);
+    KJ_REQUIRE(output_stream.is_open());
+    ev::TableWriter output(output_stream);
+
+    ev::ThreadPool thread_pool;
+
+    // Used to make sure documents are output in the same order they were
+    // provided.
+    auto previous_future = thread_pool.Launch([] { return 0; });
+
+    size_t line_no = 0;
+
+    for (std::string line; std::getline(std::cin, line);) {
+      line_no++;
+      previous_future = thread_pool.Launch([
+        line = std::move(line), &output,
+        previous_future = std::move(previous_future), line_no
+      ]() mutable {
+        bool has_class = false;
+        float class_id;
+        std::vector<uint64_t> doc_hashes;
+
+        try {
+          const auto features = ev::Explode(line, " ");
+
+          for (const auto& f : features) {
+            if (f.size() == 0) continue;
+
+            if (not has_class) {
+              class_id = std::stof(f.str());
+              has_class = true;
+            } else {
+              try {
+                const auto numeric = std::stoull(f.str());
+                doc_hashes.push_back(numeric);
+              } catch (const std::exception& e) {
+                throw std::runtime_error("while parsing '" + f.str() + "'");
+              }
+            }
+          }
+          if (!has_class) {
+            return 0;
+          }
+        } catch (const std::exception& e) {
+          std::cerr << "failure parsing line " << line_no << ": " << e.what()
+                    << std::endl;
+          abort();
+        }
         std::sort(doc_hashes.begin(), doc_hashes.end());
         if (do_unique) {
           doc_hashes.erase(std::unique(doc_hashes.begin(), doc_hashes.end()),
