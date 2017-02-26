@@ -13,6 +13,7 @@ tools_text_classifier_text_classifier_SOURCES = \
   tools/text-classifier/model.h \
   tools/text-classifier/svm.cc \
   tools/text-classifier/svm.h \
+  tools/text-classifier/table-storage.h \
   tools/text-classifier/text-classifier.cc \
   tools/text-classifier/utf8.h
 tools_text_classifier_text_classifier_LDADD = \
