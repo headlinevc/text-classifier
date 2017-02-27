@@ -1,3 +1,9 @@
+text-classifier (1.0.4ev-2) unstable; urgency=medium
+
+  * Add a command to classify without tokenizing
+
+ -- Kalle Samuels <kalle@eventures.vc>  Mon, 27 Feb 2017 13:59:43 +0000
+
 text-classifier (1.0.3ev-1) unstable; urgency=medium
 
   * Compile on older gccs

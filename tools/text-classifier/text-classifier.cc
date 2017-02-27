@@ -685,6 +685,64 @@ int main(int argc, char** argv) try {
     }
 
     thread_pool.Wait();
+  } else if (command == "classify-features") {
+    if (optind + 1 != argc)
+      errx(EX_USAGE, "Usage: %s [OPTION]... [--] classify-features MODEL-PATH",
+           argv[0]);
+
+    model->Load(ev::OpenFile(argv[optind++], O_RDONLY));
+
+    ev::ThreadPool thread_pool;
+    std::mutex output_lock;
+
+    size_t line_no = 0;
+
+    for (std::string line; std::getline(std::cin, line);) {
+      line_no++;
+
+      thread_pool.Launch([
+        line = std::move(line), &output_lock,
+        line_no,
+        model = model.get()
+      ]() mutable {
+        std::vector<uint64_t> doc_hashes;
+
+        std::string key;
+        
+        try {
+          const auto features = ev::Explode(line, " ");
+
+          for (const auto& f : features) {
+            if (f.size() == 0) continue;
+            
+            if (key.empty()) {
+              key = f.str();
+              continue;
+            }
+
+            try {
+              const auto numeric = std::stoull(f.str());
+              doc_hashes.push_back(numeric);
+            } catch (const std::exception& e) {
+              throw std::runtime_error("while parsing '" + f.str() + "'");
+            }
+          }
+        } catch (const std::exception& e) {
+          std::cerr << "failure parsing line " << line_no << ": " << e.what()
+                    << std::endl;
+          abort();
+        }
+        std::sort(doc_hashes.begin(), doc_hashes.end());
+
+        const auto v = model->Classify(doc_hashes);
+
+        std::unique_lock<std::mutex> lk(output_lock);
+        printf("%s\t%.9g\n", key.c_str(), v);
+        fflush(stdout);
+      });
+    }
+
+    thread_pool.Wait();
   } else if (command == "analyze") {
     if (optind + 2 != argc) {
       errx(EX_USAGE, "Usage: %s [OPTION]... [--] analyze DB-PATH MODEL-PATH",
