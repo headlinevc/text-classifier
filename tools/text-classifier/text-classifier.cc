@@ -521,6 +521,7 @@ int main(int argc, char** argv) try {
       errx(EX_USAGE, "Usage: %s [OPTION]... [--] learn-features DB-PATH",
            argv[0]);
 
+    std::ios_base::sync_with_stdio(false);
     std::ofstream output_stream(argv[optind++], std::ofstream::app);
     KJ_REQUIRE(output_stream.is_open());
     ev::TableWriter output(output_stream);
@@ -690,6 +691,7 @@ int main(int argc, char** argv) try {
       errx(EX_USAGE, "Usage: %s [OPTION]... [--] classify-features MODEL-PATH",
            argv[0]);
 
+    std::ios_base::sync_with_stdio(false);
     model->Load(ev::OpenFile(argv[optind++], O_RDONLY));
 
     ev::ThreadPool thread_pool;
