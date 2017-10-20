@@ -661,11 +661,13 @@ int main(int argc, char** argv) try {
     ev::ThreadPool thread_pool;
     std::mutex output_lock;
 
-    // XXX: Fix buffer overflow bug (reading into `key`).
-    char key[256];
+    char *key;
     size_t length;
 
-    while (2 == scanf("%s %zu", key, &length)) {
+    while (2 == scanf("%ms %zu", &key, &length)) {
+      std::string skey = key;
+      free(key);
+
       KJ_REQUIRE(length > 0, length);
 
       KJ_REQUIRE('\n' == getchar());
@@ -676,7 +678,7 @@ int main(int argc, char** argv) try {
       KJ_REQUIRE(ret == length, "fread failed");
 
       thread_pool.Launch([
-        buffer = std::move(buffer), key = std::string(key), &output_lock,
+        buffer = std::move(buffer), key = std::move(skey), &output_lock,
         model = model.get()
       ]() mutable {
         std::vector<uint64_t> doc_hashes;
