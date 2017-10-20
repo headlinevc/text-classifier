@@ -17,6 +17,12 @@ text-classifier (1.0.3ev-1) unstable; urgency=medium
 
  -- Kalle Samuels <kalle@eventures.vc>  Sun, 26 Feb 2017 17:54:00 +0000
 
+text-classifier (1.0.4-1) unstable; urgency=medium
+
+  * New upstream version.
+
+ -- Morten Hustveit <morten.hustveit@gmail.com>  Thu, 28 Sep 2017 23:23:21 -0400
+
 text-classifier (1.0.3-1) unstable; urgency=medium
 
   * Drop -march=native compiler flag.
