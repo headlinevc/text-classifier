@@ -1,8 +1,8 @@
-text-classifier (1.0.5ev-1) unstable; urgency=medium
+text-classifier (1.0.6ev-1) unstable; urgency=medium
 
-  * Make reading input faster
+  * Fix buffer overflow
 
- -- Kalle Samuels <kalle@eventures.vc>  Wed, 15 Mar 2017 09:18:12 +0000
+ -- Kalle Samuels <kalle@eventures.vc>  Fri, 20 Oct 2017 16:57:35 +0000
 
 text-classifier (1.0.4ev-2) unstable; urgency=medium
 
