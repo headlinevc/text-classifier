@@ -169,7 +169,7 @@ void HTMLTokenizer::Tokenize(const ev::TagsoupNode* node,
         }
       }
 
-      if (node->first_child) {
+      if (node->first_child && node_stack_.size() < 1000) {
         node_stack_.emplace_back(name_hash);
         Tokenize(node->first_child, result);
         node_stack_.pop_back();
