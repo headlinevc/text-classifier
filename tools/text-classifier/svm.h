@@ -9,6 +9,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <map>
+#include <array>
 
 #include <kj/debug.h>
 #include <kj/io.h>

@@ -1,6 +1,7 @@
 #include "tools/text-classifier/html-tokenizer.h"
 
 #include <thread>
+#include <array>
 
 #include "base/string.h"
 #include "base/thread-pool.h"

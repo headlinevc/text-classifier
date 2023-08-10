@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <iostream>
 #include <map>
+#include <array>
 
 #include <err.h>
 #include <getopt.h>
